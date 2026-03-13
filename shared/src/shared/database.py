@@ -11,9 +11,13 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/eter_db"
 )
 
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
+
+echo = True if ENVIRONMENT == "local" else False
+
 # Creamos el motor asíncrono
 # echo=True mostrará todas las consultas SQL en la consola (útil para aprender)
-engine = create_async_engine(DATABASE_URL, echo=True, pool_size=10, max_overflow=20)
+engine = create_async_engine(DATABASE_URL, echo=echo, pool_size=10, max_overflow=20)
 
 # Fábrica de sesiones
 AsyncSessionLocal = async_sessionmaker(
