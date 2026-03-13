@@ -7,7 +7,11 @@ authors = [
     { name = "Flavio Oria", email = "flavio.oria@bosonit.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "sqlalchemy>=2.0.48",
+    "psycopg[binary]~=3.3.3",
+    "python-dotenv",
+]
 
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
