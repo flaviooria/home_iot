@@ -1,0 +1,32 @@
+services:
+  # Base de Datos: PostgreSQL 16
+  db:
+    image: postgres:16-alpine
+    container_name: home_db
+    hostname: home_db
+    restart: always
+    environment:
+      POSTGRES_DB: home_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123 # Cambia esto en producción
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Broker MQTT: Mosquitto
+  broker:
+    image: eclipse-mosquitto:2.0
+    container_name: home_broker
+    hostname: home_broker_server
+    restart: always
+    ports:
+      - "1883:1883" # Puerto MQTT estándar
+      - "9001:9001" # WebSockets (por si quieres un dashboard web)
+    volumes:
+    - ./mosquitto/config:/mosquitto/config
+    - ./mosquitto/data:/mosquitto/data
+    - ./mosquitto/log:/mosquitto/log
+
+volumes:
+  postgres_data:
