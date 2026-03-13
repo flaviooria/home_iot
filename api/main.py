@@ -1,8 +1,9 @@
 from fastapi import FastAPI
-from shared.database import engine
-from shared.models import Base
+
+from v1.endpoints import api_router
 
 app = FastAPI(title="Home IoT API")
+app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/")
