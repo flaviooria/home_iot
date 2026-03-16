@@ -24,9 +24,49 @@ services:
       - "1883:1883" # Puerto MQTT estándar
       - "9001:9001" # WebSockets (por si quieres un dashboard web)
     volumes:
-    - ./mosquitto/config:/mosquitto/config
-    - ./mosquitto/data:/mosquitto/data
-    - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  grafana:
+    image: grafana/grafana
+    container_name: home_grafana
+    hostname: home_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana:/var/lib/grafana
+
+  home_api:
+    container_name: home-api
+    image: home_api_iot:0.1.0
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    hostname: home_api
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  home_subscriber:
+    container_name: home-subscriber
+    image: home_subscriber_iot:0.1.0
+    build:
+      context: .
+      dockerfile: ./subscriber/Dockerfile
+    hostname: home_subscriber
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    depends_on:
+      - db
+      - broker
 
 volumes:
   postgres_data:
+  grafana:
