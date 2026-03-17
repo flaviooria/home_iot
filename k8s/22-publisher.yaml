@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-publisher
+  namespace: home-iot
+  labels:
+    app: home-publisher
+    app.kubernetes.io/name: home-publisher
+    app.kubernetes.io/part-of: home-iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-publisher
+  template:
+    metadata:
+      labels:
+        app: home-publisher
+        app.kubernetes.io/name: home-publisher
+        app.kubernetes.io/part-of: home-iot
+    spec:
+      containers:
+      - name: publisher
+        image: home-publisher:0.1.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MQTT_BROKER
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: MQTT_BROKER
+        - name: MQTT_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: MQTT_PORT
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: MQTT_USERNAME
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: MQTT_PASSWORD
+        - name: INTERVAL_MINUTES
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: INTERVAL_MINUTES
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: TZ
+        - name: INSTALLATION_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: INSTALLATION_PREFIX
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"

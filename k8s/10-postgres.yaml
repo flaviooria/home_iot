@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-postgres
+  namespace: home-iot
+  labels:
+    app: postgres
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/part-of: home-iot
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: tcp-postgres
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: home-postgres
+  namespace: home-iot
+  labels:
+    app: postgres
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/part-of: home-iot
+spec:
+  serviceName: home-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/part-of: home-iot
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: tcp-postgres
+        env:
+        - name: POSTGRES_DB
+          value: "home_db"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: POSTGRES_PASSWORD
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 5Gi

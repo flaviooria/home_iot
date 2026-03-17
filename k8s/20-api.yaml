@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-api
+  namespace: home-iot
+  labels:
+    app: home-api
+    app.kubernetes.io/name: home-api
+    app.kubernetes.io/part-of: home-iot
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: home-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-api
+  namespace: home-iot
+  labels:
+    app: home-api
+    app.kubernetes.io/name: home-api
+    app.kubernetes.io/part-of: home-iot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: home-api
+  template:
+    metadata:
+      labels:
+        app: home-api
+        app.kubernetes.io/name: home-api
+        app.kubernetes.io/part-of: home-iot
+    spec:
+      containers:
+      - name: api
+        image: home-api:0.1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: DATABASE_URL
+        - name: MQTT_BROKER
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: MQTT_BROKER
+        - name: MQTT_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: MQTT_PORT
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home-iot
+  labels:
+    app.kubernetes.io/name: home-iot
+    app.kubernetes.io/part-of: home-iot-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-iot-config
+  namespace: home-iot
+data:
+  MQTT_BROKER: "home-mqtt"
+  MQTT_PORT: "1883"
+  DATABASE_HOST: "home-postgres"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "home_db"
+  TZ: "Europe/Madrid"
+  INTERVAL_MINUTES: "5"
+  INSTALLATION_PREFIX: "casa"
