@@ -43,6 +43,29 @@ spec:
         app.kubernetes.io/name: mosquitto
         app.kubernetes.io/part-of: home-iot
     spec:
+      # --- INIT CONTAINER: Genera el archivo de claves ---
+      initContainers:
+      - name: init-passwd
+        image: eclipse-mosquitto:2.0
+        command: ["sh", "-c"]
+        args:
+          - "mosquitto_passwd -b -c /tmp/pwfile $MQTT_USERNAME $MQTT_PASSWORD"
+        env:
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: MQTT_USERNAME
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: MQTT_PASSWORD
+        volumeMounts:
+        - name: passwd-volume
+          mountPath: /tmp
+
+      # --- CONTAINER PRINCIPAL: Mosquitto ---
       containers:
       - name: mosquitto
         image: eclipse-mosquitto:2.0
@@ -53,8 +76,12 @@ spec:
           name: websocket
         volumeMounts:
         - name: mosquitto-config
-          mountPath: /mosquitto/config
+          mountPath: /mosquitto/config/mosquitto.conf
+          subPath: mosquitto.conf
           readOnly: true
+        - name: passwd-volume
+          mountPath: /mosquitto/config/pwfile
+          subPath: pwfile
         - name: mosquitto-data
           mountPath: /mosquitto/data
         - name: mosquitto-log
@@ -66,12 +93,22 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "200m"
+
+      # --- VOLÚMENES DEFINIDOS ---
+      volumes:
+      - name: mosquitto-config
+        configMap:
+          name: mosquitto-config
+      - name: passwd-volume
+        emptyDir: {}
+
+  # --- PERSISTENCIA ---
   volumeClaimTemplates:
   - metadata:
       name: mosquitto-data
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: "local-path"
+      storageClassName: "standard"
       resources:
         requests:
           storage: 1Gi
@@ -79,7 +116,7 @@ spec:
       name: mosquitto-log
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: "local-path"
+      storageClassName: "standard"
       resources:
         requests:
           storage: 500Mi
@@ -92,7 +129,8 @@ metadata:
 data:
   mosquitto.conf: |
     listener 1883
-    allow_anonymous true
+    allow_anonymous false
+    password_file /mosquitto/config/pwfile
     persistence true
     persistence_location /mosquitto/data/
     log_dest file /mosquitto/log/mosquitto.log
