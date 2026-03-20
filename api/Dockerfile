@@ -4,39 +4,35 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# 1. Copiar archivos de configuración del workspace
-# OJO: Debes copiar TODOS los toml de los miembros declarados en el workspace
+# Copiamos la configuración del workspace completo desde la raíz
 COPY pyproject.toml uv.lock ./
 COPY shared/pyproject.toml ./shared/
 COPY api/pyproject.toml ./api/
 COPY subscriber/pyproject.toml ./subscriber/
 COPY publisher/pyproject.toml ./publisher/
 
-# 2. Instalar dependencias
-# Usamos --no-install-workspace para que no falle si aún no hemos copiado el código
+# Instalamos dependencias sin el código todavía para aprovechar la caché
 RUN uv sync --frozen --no-dev --no-install-workspace
 
-# 3. Copiar el código fuente necesario
+# Ahora copiamos el código necesario
 COPY shared/ ./shared/
 COPY api/ ./api/
 
-# 4. Sincronizar el proyecto de la API específicamente
+# Sincronización final del paquete específico
 RUN uv sync --frozen --no-dev --package api
 
 # Etapa 2: Final
 FROM python:3.12-slim
 WORKDIR /app
 
+# Copiamos solo el entorno virtual y el código fuente
 COPY --from=builder /app/.venv /app/.venv
 COPY shared/ ./shared/
 COPY api/ ./api/
 
 ENV PATH="/app/.venv/bin:$PATH"
-# Añadimos AMBAS al path por seguridad
-ENV PYTHONPATH="/app:/app/api"
+ENV PYTHONPATH="/app:/app/api:/app/shared/src"
 
-# Ejecutamos DESDE la carpeta api
+# Ejecución desde la carpeta de la api
 WORKDIR /app/api
-
-# Ejecución con uvicorn
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
