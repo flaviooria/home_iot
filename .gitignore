@@ -153,6 +153,9 @@ pip-selfcheck.json
 .ionide
 
 /mosquitto/data/*
+!mosquitto/data/.gitkeep
+!mosquitto/log/.gitkeep
+
 *.log
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,visualstudiocode,dotenv,venv
