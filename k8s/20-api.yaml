@@ -27,7 +27,7 @@ metadata:
     app.kubernetes.io/name: home-api
     app.kubernetes.io/part-of: home-iot
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: home-api
@@ -38,9 +38,22 @@ spec:
         app.kubernetes.io/name: home-api
         app.kubernetes.io/part-of: home-iot
     spec:
+      initContainers:
+        - name: migrate
+          image: home_api_iot:0.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - alembic upgrade head
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: home-iot-secrets
+                  key: DATABASE_URL
       containers:
       - name: api
-        image: home-api:0.1.0
+        image: home_api_iot:0.1.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
@@ -82,3 +95,4 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "500m"
+---
