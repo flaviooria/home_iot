@@ -63,9 +63,9 @@ clean:
 
 build-images:
 	@echo "🐳 Building Docker images..."
-	docker build -t home_api_iot:0.1.0 -f api/Dockerfile .
-	docker build -t home_subscriber_iot:0.1.0 -f subscriber/Dockerfile .
-	docker build -t home_publisher_iot:0.1.0 -f publisher/Dockerfile .
+	docker build -t home-api:0.1.0 -f api/Dockerfile .
+	docker build -t home-subscriber:0.1.0 -f subscriber/Dockerfile .
+	docker build -t home-publisher:0.1.0 -f publisher/Dockerfile .
 
 port-forward:
 	@echo "🔗 Setting up port forwarding..."

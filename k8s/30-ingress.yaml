@@ -6,19 +6,11 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "traefik"
     traefik.ingress.kubernetes.io/router.entrypoints: "web"
-    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   rules:
   - host: home-iot.local
     http:
       paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: home-api
-            port:
-              number: 80
       - path: /
         pathType: Prefix
         backend:

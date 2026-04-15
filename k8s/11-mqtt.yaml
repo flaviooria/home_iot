@@ -49,7 +49,7 @@ spec:
         image: eclipse-mosquitto:2.0
         command: ["sh", "-c"]
         args:
-          - "mosquitto_passwd -b -c /tmp/pwfile $MQTT_USERNAME $MQTT_PASSWORD"
+          - "mosquitto_passwd -b -c /tmp/pwdfile $MQTT_USERNAME $MQTT_PASSWORD"
         env:
         - name: MQTT_USERNAME
           valueFrom:
@@ -80,8 +80,8 @@ spec:
           subPath: mosquitto.conf
           readOnly: true
         - name: passwd-volume
-          mountPath: /mosquitto/config/pwfile
-          subPath: pwfile
+          mountPath: /mosquitto/config/pwdfile
+          subPath: pwdfile
         - name: mosquitto-data
           mountPath: /mosquitto/data
         - name: mosquitto-log
@@ -108,7 +108,7 @@ spec:
       name: mosquitto-data
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: ""
+      storageClassName: "local-path"
       resources:
         requests:
           storage: 1Gi
@@ -116,7 +116,7 @@ spec:
       name: mosquitto-log
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: ""
+      storageClassName: "local-path"
       resources:
         requests:
           storage: 500Mi
@@ -130,7 +130,7 @@ data:
   mosquitto.conf: |
     listener 1883
     allow_anonymous false
-    password_file /mosquitto/config/pwfile
+    password_file /mosquitto/config/pwdfile
     persistence true
     persistence_location /mosquitto/data/
     log_dest file /mosquitto/log/mosquitto.log

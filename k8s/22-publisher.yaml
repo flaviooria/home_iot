@@ -24,6 +24,11 @@ spec:
         image: home-publisher:0.1.0
         imagePullPolicy: IfNotPresent
         env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: DATABASE_URL
         - name: MQTT_BROKER
           valueFrom:
             configMapKeyRef:

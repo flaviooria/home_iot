@@ -49,6 +49,11 @@ spec:
             secretKeyRef:
               name: home-iot-secrets
               key: MQTT_PASSWORD
+        - name: INSTALLATION_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: home-iot-config
+              key: INSTALLATION_PREFIX
         resources:
           requests:
             memory: "64Mi"

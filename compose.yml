@@ -49,7 +49,7 @@ services:
 
   migrations:
     container_name: home-db-migrations
-    image: home_api_iot:0.1.0
+    image: home-api:0.1.0
     build:
       context: .
       dockerfile: ./api/Dockerfile
@@ -63,7 +63,7 @@ services:
 
   home_api:
     container_name: home-api
-    image: home_api_iot:0.1.0
+    image: home-api:0.1.0
     build:
       context: .
       dockerfile: ./api/Dockerfile
@@ -81,7 +81,7 @@ services:
 
   home_subscriber:
     container_name: home-subscriber
-    image: home_subscriber_iot:0.1.0
+    image: home-subscriber:0.1.0
     build:
       context: .
       dockerfile: ./subscriber/Dockerfile
@@ -99,7 +99,7 @@ services:
 
   home_publisher:
     container_name: home-publisher
-    image: home_publisher_iot:0.1.0
+    image: home-publisher:0.1.0
     build:
       context: .
       dockerfile: ./publisher/Dockerfile
