@@ -13,6 +13,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d home_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Broker MQTT: Mosquitto
   broker:
@@ -23,10 +28,14 @@ services:
     ports:
       - "1883:1883" # Puerto MQTT estándar
       - "9001:9001" # WebSockets (por si quieres un dashboard web)
+    environment:
+      MQTT_USERNAME: ${MQTT_USERNAME}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
     volumes:
-      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
-      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/init.sh:/init.sh:ro
+    entrypoint: [ "/init.sh" ]
 
   grafana:
     image: grafana/grafana
@@ -37,6 +46,20 @@ services:
       - "3000:3000"
     volumes:
       - grafana:/var/lib/grafana
+
+  migrations:
+    container_name: home-db-migrations
+    image: home_api_iot:0.1.0
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    env_file:
+      - .env.local
+    # Sobrescribimos el comando para que solo ejecute Alembic y se cierre
+    command: [ "alembic", "upgrade", "head" ]
+    depends_on:
+      db:
+        condition: service_healthy
 
   home_api:
     container_name: home-api
@@ -51,7 +74,10 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully # Solo arranca si la migración terminó bien
 
   home_subscriber:
     container_name: home-subscriber
@@ -64,8 +90,30 @@ services:
     env_file:
       - .env.local
     depends_on:
-      - db
-      - broker
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      broker:
+        condition: service_started
+
+  home_publisher:
+    container_name: home-publisher
+    image: home_publisher_iot:0.1.0
+    build:
+      context: .
+      dockerfile: ./publisher/Dockerfile
+    hostname: home_publisher
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      broker:
+        condition: service_started
 
 volumes:
   postgres_data:

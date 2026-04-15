@@ -78,12 +78,14 @@ name = "api"
 version = "0.1.0"
 source = { virtual = "api" }
 dependencies = [
+    { name = "alembic" },
     { name = "fastapi", extra = ["standard"] },
     { name = "shared" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "alembic", specifier = ">=1.18.4" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.135.1" },
     { name = "shared", editable = "shared" },
 ]
