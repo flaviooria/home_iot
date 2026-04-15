@@ -1,5 +1,6 @@
 import asyncio
 import json
+import socket
 import sys
 from datetime import datetime, timezone
 
@@ -118,7 +119,7 @@ class SubscriberAgent:
                     port=self.mqtt_port,
                     username=self.mqtt_username,
                     password=password,
-                    identifier="home_core_subscriber_async"
+                    identifier=f"home_subscriber_{socket.gethostname()}"
             ) as client:
                 self.log.success("✅ Conectado al Broker con éxito.")
 

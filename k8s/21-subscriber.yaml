@@ -64,16 +64,16 @@ spec:
         livenessProbe:
           exec:
             command:
-            - pgrep
-            - -f
-            - "python.*subscriber"
+            - /bin/sh
+            - -c
+            - kill -0 1
           initialDelaySeconds: 15
           periodSeconds: 30
         readinessProbe:
           exec:
             command:
-            - pgrep
-            - -f
-            - "python.*subscriber"
+            - /bin/sh
+            - -c
+            - kill -0 1
           initialDelaySeconds: 5
           periodSeconds: 10
