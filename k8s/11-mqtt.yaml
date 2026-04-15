@@ -108,7 +108,7 @@ spec:
       name: mosquitto-data
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: "standard"
+      storageClassName: ""
       resources:
         requests:
           storage: 1Gi
@@ -116,7 +116,7 @@ spec:
       name: mosquitto-log
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: "standard"
+      storageClassName: ""
       resources:
         requests:
           storage: 500Mi
