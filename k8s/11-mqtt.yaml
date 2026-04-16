@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-mqtt
+  namespace: home-iot
+  labels:
+    app: mqtt
+    app.kubernetes.io/name: mosquitto
+    app.kubernetes.io/part-of: home-iot
+spec:
+  type: ClusterIP
+  ports:
+  - port: 1883
+    targetPort: 1883
+    protocol: TCP
+    name: mqtt
+  - port: 9001
+    targetPort: 9001
+    protocol: TCP
+    name: websocket
+  selector:
+    app: mqtt
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: home-mqtt
+  namespace: home-iot
+  labels:
+    app: mqtt
+    app.kubernetes.io/name: mosquitto
+    app.kubernetes.io/part-of: home-iot
+spec:
+  serviceName: home-mqtt
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt
+  template:
+    metadata:
+      labels:
+        app: mqtt
+        app.kubernetes.io/name: mosquitto
+        app.kubernetes.io/part-of: home-iot
+    spec:
+      # --- INIT CONTAINER: Genera el archivo de claves ---
+      initContainers:
+      - name: init-passwd
+        image: eclipse-mosquitto:2.0
+        command: ["sh", "-c"]
+        args:
+          - "mosquitto_passwd -b -c /tmp/pwdfile $MQTT_USERNAME $MQTT_PASSWORD"
+        env:
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: MQTT_USERNAME
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: home-iot-secrets
+              key: MQTT_PASSWORD
+        volumeMounts:
+        - name: passwd-volume
+          mountPath: /tmp
+
+      # --- CONTAINER PRINCIPAL: Mosquitto ---
+      containers:
+      - name: mosquitto
+        image: eclipse-mosquitto:2.0
+        ports:
+        - containerPort: 1883
+          name: mqtt
+        - containerPort: 9001
+          name: websocket
+        volumeMounts:
+        - name: mosquitto-config
+          mountPath: /mosquitto/config/mosquitto.conf
+          subPath: mosquitto.conf
+          readOnly: true
+        - name: passwd-volume
+          mountPath: /mosquitto/config/pwdfile
+          subPath: pwdfile
+        - name: mosquitto-data
+          mountPath: /mosquitto/data
+        - name: mosquitto-log
+          mountPath: /mosquitto/log
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+
+      # --- VOLÚMENES DEFINIDOS ---
+      volumes:
+      - name: mosquitto-config
+        configMap:
+          name: mosquitto-config
+      - name: passwd-volume
+        emptyDir: {}
+
+  # --- PERSISTENCIA ---
+  volumeClaimTemplates:
+  - metadata:
+      name: mosquitto-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: mosquitto-log
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 500Mi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: home-iot
+data:
+  mosquitto.conf: |
+    listener 1883
+    allow_anonymous false
+    password_file /mosquitto/config/pwdfile
+    persistence true
+    persistence_location /mosquitto/data/
+    log_dest file /mosquitto/log/mosquitto.log
+    log_dest stdout
