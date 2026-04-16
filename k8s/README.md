@@ -203,6 +203,12 @@ make delete
 
 # Eliminar también los volúmenes (borra datos)
 kubectl delete pvc --all -n home-iot
+
+# Importar imagenes en k3s
+make k3s-import
+
+# Importar imagenes en k3d
+make k3d-import
 ```
 
 ---
