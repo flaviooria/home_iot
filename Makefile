@@ -95,4 +95,12 @@ port-forward:
 
 migrations:
 	@echo "🔧 Running database migrations..."
-	$(KUBECTL) exec -n home-iot -it $$(kubectl get pods -n home-iot -l app=home-api -o jsonpath='{.items[0].metadata.name}') -- alembic upgrade head
+	$(KUBECTL) exec -n home-iot -it $$(kubectl get pods -n home-iot -l app=home-api -o jsonpath='{.items[0].metadata.name}') -- alembic upgrade headç
+
+seed-k3s:
+	@echo "🌱 Seeding database in K3s..."
+	cat k8s/seed.sql | $(KUBECTL) exec -i -n home-iot home-postgres-0 -- psql -U postgres -d home_db
+
+seed-docker:
+	@echo "🌱 Seeding database in Docker..."
+	docker exec -i home_db psql -U postgres -d home_db < k8s/seed.sql

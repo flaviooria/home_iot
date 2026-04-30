@@ -3,13 +3,11 @@ name = "shared"
 version = "0.1.0"
 description = "Library to generate tables and models from IoT devices"
 readme = "README.md"
-authors = [
-    { name = "Flavio Oria", email = "flavio.oria@gmail.com" }
-]
+authors = [{ name = "Flavio Oria", email = "flavio.oria@gmail.com" }]
 requires-python = ">=3.11"
 dependencies = [
     "sqlalchemy>=2.0.48",
-    "psycopg[binary]~=3.3.3",
+    "asyncpg~=0.31.0",
     "python-dotenv",
     "loguru~=0.7.3",
     "pydantic-settings~=2.13.1",

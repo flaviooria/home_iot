@@ -1,14 +1,15 @@
 import os
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.orm import DeclarativeBase
+
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
 
 # Cargamos el .env que está en la raíz del monorepo
 load_dotenv()
 
 # URL de conexión (usa el driver psycopg asíncrono)
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/eter_db"
+    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/eter_db"
 )
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
