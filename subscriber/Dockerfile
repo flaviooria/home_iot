@@ -1,5 +1,5 @@
 FROM python:3.12-slim AS builder
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.9 /uv /bin/uv
 
 WORKDIR /app
 
@@ -14,18 +14,23 @@ RUN uv sync --frozen --no-dev --no-install-workspace
 COPY shared/ ./shared/
 COPY subscriber/ ./subscriber/
 
-RUN uv sync --frozen --no-dev --package subscriber
+RUN uv sync --frozen --no-dev --package subscriber --no-cache \
+    && rm -rf /root/.cache
 
 FROM python:3.12-slim
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
-COPY shared/ ./shared/
-COPY subscriber/ ./subscriber/
+COPY --from=builder /app/shared/ /app/shared/
+COPY --from=builder /app/subscriber/ /app/subscriber/
 
 ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH="/app:/app/subscriber:/app/shared/src"
+ENV PYTHONPATH="/app:/app/subscriber"
 
-WORKDIR /app/subscriber
+RUN useradd -ms /bin/bash appuser \
+    && mkdir -p /app/.logs \
+    && chown appuser:appuser /app/.logs
+USER appuser
+
 # Usamos -m para asegurar que los imports relativos funcionen si es un paquete
-CMD ["python", "main.py"]
+CMD ["python", "subscriber/main.py"]
