@@ -3,7 +3,7 @@ import sys
 
 from shared.logger import setup_logger
 from shared.mqtt_settings import MqttSettings
-from src.publisher import PublisherAgent
+from publisher import PublisherAgent
 
 log = setup_logger("Publisher")
 

@@ -3,7 +3,7 @@ import sys
 
 from shared.logger import setup_logger
 from shared.mqtt_settings import MqttSettings
-from src.subscriber import SubscriberAgent
+from subscriber import SubscriberAgent
 
 log = setup_logger("Subscriber")
 
