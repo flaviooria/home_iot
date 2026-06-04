@@ -28,24 +28,13 @@ services:
     ports:
       - "1883:1883" # Puerto MQTT estándar
       - "9001:9001" # WebSockets (por si quieres un dashboard web)
-    environment:
-      MQTT_USERNAME: ${MQTT_USERNAME}
-      MQTT_PASSWORD: ${MQTT_PASSWORD}
+    env_file:
+      - .env.local
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/init.sh:/init.sh:ro
     entrypoint: [ "/init.sh" ]
-
-  grafana:
-    image: grafana/grafana
-    container_name: home_grafana
-    hostname: home_grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana:/var/lib/grafana
 
   migrations:
     container_name: home-db-migrations
